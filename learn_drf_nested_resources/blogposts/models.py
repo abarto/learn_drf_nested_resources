@@ -25,3 +25,10 @@ class AuthorMixin(models.Model):
 
 class Blogpost(UUIDIdMixin, TimeStampedModel, TitleSlugDescriptionModel, AuthorMixin):
     content = models.TextField(_('content'), blank=True, null=True)
+
+
+class Comment(UUIDIdMixin, TimeStampedModel, AuthorMixin):
+    blogpost = models.ForeignKey(
+        Blogpost, editable=False, verbose_name=_('blogpost'), related_name='comments'
+    )
+    content = models.TextField(_('content'), max_length=255, blank=False, null=False)

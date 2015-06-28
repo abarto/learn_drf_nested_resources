@@ -1,5 +1,11 @@
+from rest_framework import status
+from rest_framework.mixins import (
+    RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, CreateModelMixin
+)
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from .models import Blogpost, Comment
 from .permissions import IsAuthorOrReadOnly
@@ -13,3 +19,45 @@ class BlogpostViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+
+class CommentViewSet(
+    RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet
+):
+    serializer_class = CommentSerializer
+    queryset = Comment.objects.all()
+
+
+class NestedCommentViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+    def create(self, request, *args, blogpost_pk=None, **kwargs):
+        blogpost = get_object_or_404(Blogpost.objects.filter(pk=blogpost_pk))
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save(
+            author=self.request.user,
+            blogpost=blogpost
+        )
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def list(self, request, *args, blogpost_pk=None, **kwargs):
+        blogpost = get_object_or_404(Blogpost.objects.filter(pk=blogpost_pk))
+
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(blogpost=blogpost)
+        )
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)

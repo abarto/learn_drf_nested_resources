@@ -25,6 +25,7 @@ class AuthorMixin(models.Model):
 
 class Blogpost(UUIDIdMixin, TimeStampedModel, TitleSlugDescriptionModel, AuthorMixin):
     content = models.TextField(_('content'), blank=True, null=True)
+    allow_comments = models.BooleanField(_('allow comments'), default=True)
 
 
 class Comment(UUIDIdMixin, TimeStampedModel, AuthorMixin):

@@ -1,14 +1,15 @@
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.generics import get_object_or_404
 from rest_framework.mixins import (
     RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, CreateModelMixin
 )
-from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from .models import Blogpost, Comment
-from .permissions import IsAuthorOrReadOnly
+from .permissions import IsAuthorOrReadOnly, CommentDeleteOrUpdatePermission
 from .serializers import BlogpostSerializer, CommentSerializer
 
 
@@ -24,16 +25,25 @@ class BlogpostViewSet(ModelViewSet):
 class CommentViewSet(
     RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet
 ):
-    serializer_class = CommentSerializer
     queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, CommentDeleteOrUpdatePermission)
 
 
 class NestedCommentViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def create(self, request, *args, blogpost_pk=None, **kwargs):
+        # Check if the referenced blogpost exists
         blogpost = get_object_or_404(Blogpost.objects.filter(pk=blogpost_pk))
+        
+        # Check if comments are allowed
+        if not blogpost.allow_comments:
+            raise PermissionDenied
+
+        # Proceed as usual
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -44,9 +54,11 @@ class NestedCommentViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
         )
 
         headers = self.get_success_headers(serializer.data)
+        
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def list(self, request, *args, blogpost_pk=None, **kwargs):
+        # Check if the referenced blogpost exists
         blogpost = get_object_or_404(Blogpost.objects.filter(pk=blogpost_pk))
 
         queryset = self.filter_queryset(

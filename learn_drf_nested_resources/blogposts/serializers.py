@@ -6,7 +6,7 @@ from .models import Blogpost, Comment
 class BlogpostSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Blogpost
-        fields = ('url', 'title', 'slug', 'description', 'content', 'author', 'created', 'modified')
+        fields = ('url', 'title', 'slug', 'description', 'content', 'allow_comments', 'author', 'created', 'modified')
         read_only_fields = ('url', 'slug', 'author', 'created', 'modified')
 
 

@@ -4,7 +4,7 @@ from .models import Blogpost, Comment
 
 
 class BlogpostAdmin(admin.ModelAdmin):
-    fields = ('title', 'slug', 'description', 'content', 'author', 'created', 'modified')
+    fields = ('title', 'slug', 'description', 'content', 'allow_comments', 'author', 'created', 'modified')
     readonly_fields = ('slug', 'created', 'modified', 'author')
 
 

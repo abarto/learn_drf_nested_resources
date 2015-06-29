@@ -31,10 +31,9 @@ router.register(r'comments', CommentViewSet)
 blogposts_router = NestedSimpleRouter(router, r'blogposts', lookup='blogpost')
 blogposts_router.register(r'comments', NestedCommentViewSet)
 
-
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^', include(router.urls)),
-    url(r'^', include(blogposts_router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    url(r'^api/', include(router.urls)),
+    url(r'^api/', include(blogposts_router.urls)),
+    url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ]

@@ -159,7 +159,7 @@ I used OAuth2 for authentication and authorization, and created an application t
 
 ::
 
-    $ curl --header "Content-Type: application/x-www-form-urlencoded" --data "username=admin&password=admin&grant_type=password&client_id=g9lMt5ySrJw8P5TQSIidykuhkG6SCKxLpvsAg2zZ" --request POST http://localhost:8000/o/token/
+    $ curl --header "Content-Type: application/x-www-form-urlencoded" --data "username=admin&password=admin&grant_type=password&client_id=7ytbv0sG9FusDdDYRcZPUIGoNrx9TBZJnye5CVvj" --request POST http://localhost:8000/o/token/
     {"scope": "read write", "expires_in": 36000, "token_type": "Bearer", "access_token": "nJckFj8TEg8aL9Cw5VYh0bCtQOScjr", "refresh_token": "vhbNBb4SPeL6Sgh6fJEg7TuFWqYonK"}
 
 Afterwards we can use the given access token in the Authorization header of subsequent requests:
@@ -191,6 +191,8 @@ Afterwards we can use the given access token in the Authorization header of subs
             "modified": "2015-06-29T01:27:59.722019Z"
         }
     ]
+
+A `Vagrant <https://www.vagrantup.com/>`_ configuration file is included if you want to test the service yourself.
 
 Feedback
 --------

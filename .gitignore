@@ -2,3 +2,5 @@ db.sqlite3
 .idea
 *.pyc
 learn_drf_nested_resources_venv/
+.vagrant
+static/

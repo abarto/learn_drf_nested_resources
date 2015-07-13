@@ -9,7 +9,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from .models import Blogpost, Comment
-from .permissions import IsAuthorOrReadOnly, CommentDeleteOrUpdatePermission
+from .permissions import (
+    IsAuthorOrReadOnly, CommentDeleteOrUpdatePermission, CommentsAllowed
+)
 from .serializers import BlogpostSerializer, CommentSerializer
 
 
@@ -33,7 +35,7 @@ class CommentViewSet(
 class NestedCommentViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, CommentsAllowed)
 
     def get_blogpost(self, request, blogpost_pk=None):
         """
@@ -49,10 +51,6 @@ class NestedCommentViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
 
     def create(self, request, *args, blogpost_pk=None, **kwargs):
         blogpost = self.get_blogpost(request, blogpost_pk=blogpost_pk)
-
-        # Check if comments are allowed
-        if not blogpost.allow_comments:
-            raise PermissionDenied
 
         # Proceed as usual
 
@@ -71,9 +69,8 @@ class NestedCommentViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
     def list(self, request, *args, blogpost_pk=None, **kwargs):
         blogpost = self.get_blogpost(request, blogpost_pk=blogpost_pk)
 
-        queryset = self.filter_queryset(
-            self.get_queryset().filter(blogpost=blogpost)
-        )
+        queryset = self.get_queryset().filter(blogpost=blogpost)
+        queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(queryset)
         if page is not None:

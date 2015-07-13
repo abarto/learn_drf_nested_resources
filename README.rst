@@ -92,7 +92,7 @@ This also has the advantage of being quite easy to implement, as it leverages DR
     class NestedCommentViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
         queryset = Comment.objects.all()
         serializer_class = CommentSerializer
-        permission_classes = (IsAuthenticatedOrReadOnly,)
+        permission_classes = (IsAuthenticatedOrReadOnly, CommentsAllowed)
 
         def get_blogpost(self, request, blogpost_pk=None):
             """
@@ -108,10 +108,6 @@ This also has the advantage of being quite easy to implement, as it leverages DR
 
         def create(self, request, *args, blogpost_pk=None, **kwargs):
             blogpost = self.get_blogpost(request, blogpost_pk=blogpost_pk)
-
-            # Check if comments are allowed
-            if not blogpost.allow_comments:
-                raise PermissionDenied
 
             # Proceed as usual
 
@@ -130,9 +126,8 @@ This also has the advantage of being quite easy to implement, as it leverages DR
         def list(self, request, *args, blogpost_pk=None, **kwargs):
             blogpost = self.get_blogpost(request, blogpost_pk=blogpost_pk)
 
-            queryset = self.filter_queryset(
-                self.get_queryset().filter(blogpost=blogpost)
-            )
+            queryset = self.get_queryset().filter(blogpost=blogpost)
+            queryset = self.filter_queryset(self.get_queryset())
 
             page = self.paginate_queryset(queryset)
             if page is not None:
@@ -176,7 +171,7 @@ Afterwards we can use the given access token in the Authorization header of subs
 
 ::
 
-    $ curl --header "Authentication: Bearer nJckFj8TEg8aL9Cw5VYh0bCtQOScjr" --header "Accept: application/json; indent=4"  --request GET http://localhost:8000/api/blogposts/
+    $ curl --header "Authorization: Bearer nJckFj8TEg8aL9Cw5VYh0bCtQOScjr" --header "Accept: application/json; indent=4"  --request GET http://localhost:8000/api/blogposts/
     [
         {
             "url": "http://localhost:8000/api/blogposts/41baef11-34a3-4a56-ab2d-5f404e5135c5/",
@@ -201,6 +196,16 @@ Afterwards we can use the given access token in the Authorization header of subs
             "modified": "2015-06-29T01:27:59.722019Z"
         }
     ]
+
+    $ curl --header "Authorization: Bearer tbrPVUTvGGmnDNn4aoy7bgSm6WErsi" --header "Accept: application/json; indent=4" --header "Content-Type: application/json"  --request POST --data '{"content": "No RESTful for the wicked"}' http://localhost:8000/api/blogposts/b44d4918-219e-4496-9318-b68ab13e2b25/comments/; echo
+    {
+        "url": "http://127.0.0.1:8000/api/comments/fcdc71aa-51ed-4433-8090-adc4e7678b9a/",
+        "content": "No RESTful for the wicked",
+        "author": "http://127.0.0.1:8000/api/users/1/",
+        "created": "2015-07-13T19:57:36.235369Z",
+        "modified": "2015-07-13T19:57:36.236020Z",
+        "blogpost": "http://127.0.0.1:8000/api/blogposts/41baef11-34a3-4a56-ab2d-5f404e5135c5/"
+    }
 
 A `Vagrant <https://www.vagrantup.com/>`_ configuration file is included if you want to test the service yourself.
 

@@ -27,6 +27,9 @@ class Blogpost(UUIDIdMixin, TimeStampedModel, TitleSlugDescriptionModel, AuthorM
     content = models.TextField(_('content'), blank=True, null=True)
     allow_comments = models.BooleanField(_('allow comments'), default=True)
 
+    def __str__(self):
+        return self.title
+
 
 class Comment(UUIDIdMixin, TimeStampedModel, AuthorMixin):
     blogpost = models.ForeignKey(

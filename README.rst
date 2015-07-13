@@ -34,6 +34,8 @@ The application exposes an API to manage blogposts and comments. No provision ha
         content = models.TextField(_('content'), blank=True, null=True)
         allow_comments = models.BooleanField(_('allow comments'), default=True)
 
+        def __str__(self):
+            return self.title
 
     class Comment(UUIDIdMixin, TimeStampedModel, AuthorMixin):
         blogpost = models.ForeignKey(
@@ -57,8 +59,8 @@ The API is where things get interesting. The access to the blogposts is exposed 
 
 The whole point of the project is to show you how to implement nested resources, so comments are exposed under blogposts:
 
-    * **list:** ``GET /api/blogposts/(?P<pk>[^/.]+)/comments`` List all the comments on a specific blogpost.
-    * **create:** ``POST /api/blogposts/(?P<pk>[^/.]+)/comments`` Create a new comment on a specific blogpost.
+    * **list:** ``GET /api/blogposts/(?P<blogpost_pk>[^/.]+)/comments`` List all the comments on a specific blogpost.
+    * **create:** ``POST /api/blogposts/(?P<blogpost_pk>[^/.]+)/comments`` Create a new comment on a specific blogpost.
 
 The rest of the comment actions are exposed through a top-level ``/comments`` endpoint. The reason for this is that I (and others believe) that resources should be accessible through a single URI.
 

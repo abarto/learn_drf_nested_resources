@@ -116,7 +116,7 @@ server {
 }
     ' > /etc/nginx/conf.d/learn_drf_nested_resources.conf
 
-    service nginx restart
+    service nginx reload
   SHELL
 
   config.vm.provision "shell", privileged: false, inline: <<-SHELL
@@ -195,7 +195,7 @@ server {
             ],
             "title": "A longer blogpost",
             "created": "2015-07-10T00:15:38.135Z",
-            "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus maximus, lorem eget accumsan maximus, ante mauris lacinia massa, sit amet pellentesque nisl leo eu libero. Fusce hendrerit risus eu vehicula cursus. Duis tincidunt enim eget felis tempus, ut consequat purus elementum. Fusce placerat quis tortor ut iaculis. Duis a tincidunt tellus. Sed viverra sem eu mollis tempus. Mauris id rutrum tortor. Praesent sit amet auctor urna. Morbi placerat lorem eget dignissim sollicitudin. Integer pulvinar sit amet turpis vitae porta. Nunc enim eros, viverra in mauris quis, porta commodo velit. Mauris nec condimentum lacus, eu lobortis ligula. Aenean quis leo a neque tincidunt sollicitudin eget a arcu. Proin in rhoncus velit. Proin vel nisi vitae ante iaculis consequat.\r\n\r\nVivamus varius gravida ultrices. Sed eu sollicitudin neque. Nullam finibus consequat libero, vitae posuere magna suscipit ut. Maecenas ultrices purus vitae lorem iaculis, a volutpat lectus tempor. Proin auctor urna dolor, ut pellentesque est fringilla eu. Curabitur placerat dolor ac ornare rhoncus. In tellus nunc, vulputate eu odio ac, facilisis venenatis arcu. In ullamcorper consequat nunc, non aliquet nulla efficitur at. Phasellus non aliquet est, vel convallis sapien. In vel dui a dui rhoncus auctor eu eu mi. Duis porttitor turpis neque. Fusce.",
+            "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus maximus, lorem eget accumsan maximus, ante mauris lacinia massa, sit amet pellentesque nisl leo eu libero. Fusce hendrerit risus eu vehicula cursus. Duis tincidunt enim eget felis tempus, ut consequat purus elementum.",
             "description": "Lorem ipsum dolor sit amet...",
             "modified": "2015-07-10T00:16:34.192Z",
             "allow_comments": true,

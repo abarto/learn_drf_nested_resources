@@ -35,10 +35,21 @@ class NestedCommentViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
-    def create(self, request, *args, blogpost_pk=None, **kwargs):
+    def get_blogpost(self, request, blogpost_pk=None):
+        """
+        Look for the referenced blogpost
+        """
         # Check if the referenced blogpost exists
-        blogpost = get_object_or_404(Blogpost.objects.filter(pk=blogpost_pk))
-        
+        blogpost = get_object_or_404(Blogpost.objects.all(), pk=blogpost_pk)
+
+        # Check permissions
+        self.check_object_permissions(self.request, blogpost)
+
+        return blogpost
+
+    def create(self, request, *args, blogpost_pk=None, **kwargs):
+        blogpost = self.get_blogpost(request, blogpost_pk=blogpost_pk)
+
         # Check if comments are allowed
         if not blogpost.allow_comments:
             raise PermissionDenied
@@ -54,12 +65,11 @@ class NestedCommentViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
         )
 
         headers = self.get_success_headers(serializer.data)
-        
+
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def list(self, request, *args, blogpost_pk=None, **kwargs):
-        # Check if the referenced blogpost exists
-        blogpost = get_object_or_404(Blogpost.objects.filter(pk=blogpost_pk))
+        blogpost = self.get_blogpost(request, blogpost_pk=blogpost_pk)
 
         queryset = self.filter_queryset(
             self.get_queryset().filter(blogpost=blogpost)

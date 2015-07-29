@@ -147,54 +147,129 @@ The URLs are then wired using a couple of routers:
         url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     ]
 
-Authentication
+Usage
 --------------
 
-I used OAuth2 for authentication and authorization, and created an application to allow access to the API. The application was defined as "Public" with grant type "Resource owner password-base", so all we need to do to access the API is request an access token:
+I used OAuth2 for authentication and authorization, and created an application to allow access to the API. The application was defined as "Public" with grant type "Resource owner password-base", so all we need to do to access the API is request an access token: ::
 
-::
+    $ curl --silent --header "Content-Type: application/x-www-form-urlencoded" --data "username=admin&password=admin&grant_type=password&client_id=7ytbv0sG9FusDdDYRcZPUIGoNrx9TBZJnye5CVvj" --request POST http://localhost:8000/o/token/|python -mjson.tool; echo
+    {
+        "access_token": "Q8Wbo12h5jwgwR208WDNrhNpK20Ta0",
+        "expires_in": 36000,
+        "refresh_token": "inEHtHuerVRXSH5QjbvokgrqJYxngL",
+        "scope": "read write",
+        "token_type": "Bearer"
+    }
 
-    $ curl --header "Content-Type: application/x-www-form-urlencoded" --data "username=admin&password=admin&grant_type=password&client_id=7ytbv0sG9FusDdDYRcZPUIGoNrx9TBZJnye5CVvj" --request POST http://localhost:8000/o/token/
-    {"scope": "read write", "expires_in": 36000, "token_type": "Bearer", "access_token": "nJckFj8TEg8aL9Cw5VYh0bCtQOScjr", "refresh_token": "vhbNBb4SPeL6Sgh6fJEg7TuFWqYonK"}
+You can request a list of blogposts: ::
 
-Afterwards we can use the given access token in the Authorization header of subsequent requests:
-
-::
-
-    $ curl --header "Authorization: Bearer nJckFj8TEg8aL9Cw5VYh0bCtQOScjr" --header "Accept: application/json; indent=4"  --request GET http://localhost:8000/api/blogposts/
+    $ curl --header "Authorization: Bearer Q8Wbo12h5jwgwR208WDNrhNpK20Ta0" --header "Accept: application/json; indent=4"  --request GET http://localhost:8000/api/blogposts/; echo
     [
         {
-            "url": "http://localhost:8000/api/blogposts/41baef11-34a3-4a56-ab2d-5f404e5135c5/",
-            "title": "Blogpost title",
-            "slug": "blogpost-title",
-            "description": "Blogpost description (changed)",
-            "content": "Blogpost content",
+            "url": "http://127.0.0.1:8000/api/blogposts/588660f1-4848-4a32-8eb5-9688fd4409dd/",
+            "title": "A longer blogpost",
+            "slug": "a-longer-blogpost",
+            "description": "Lorem ipsum dolor sit amet...",
+            "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus maximus, lorem eget accumsan maximus, ante mauris lacinia massa, sit amet pellentesque nisl leo eu libero. Fusce hendrerit risus eu vehicula cursus. Duis tincidunt enim eget felis tempus, ut consequat purus elementum.",
             "allow_comments": true,
-            "author": "http://localhost:8000/api/users/1/",
-            "created": "2015-06-27T23:09:42.785075Z",
-            "modified": "2015-06-29T01:25:28.922868Z"
+            "author": "http://127.0.0.1:8000/api/users/2/",
+            "created": "2015-07-10T00:15:38.135000Z",
+            "modified": "2015-07-10T00:16:34.192000Z"
         },
         {
-            "url": "http://localhost:8000/api/blogposts/82676f21-75ba-4710-a0d6-6c0b80b2d080/",
-            "title": "Another blogpost",
-            "slug": "another-blogpost",
-            "description": "Another blogpost description",
-            "content": "Another blogpost content",
-            "allow_comments": false,
-            "author": "http://localhost:8000/api/users/1/",
-            "created": "2015-06-29T01:17:46.052855Z",
-            "modified": "2015-06-29T01:27:59.722019Z"
+            "url": "http://127.0.0.1:8000/api/blogposts/b44d4918-219e-4496-9318-b68ab13e2b25/",
+            "title": "A short blogpost",
+            "slug": "a-short-blogpost",
+            "description": "The description of the blogpost is short",
+            "content": "This is just a short blogpost.",
+            "allow_comments": true,
+            "author": "http://127.0.0.1:8000/api/users/2/",
+            "created": "2015-07-10T00:14:06.500000Z",
+            "modified": "2015-07-10T00:14:06.501000Z"
         }
     ]
 
-    $ curl --header "Authorization: Bearer tbrPVUTvGGmnDNn4aoy7bgSm6WErsi" --header "Accept: application/json; indent=4" --header "Content-Type: application/json"  --request POST --data '{"content": "No RESTful for the wicked"}' http://localhost:8000/api/blogposts/b44d4918-219e-4496-9318-b68ab13e2b25/comments/; echo
+You can request a list of comments for a specific blogpost: ::
+
+    $ curl --header "Authorization: Bearer Q8Wbo12h5jwgwR208WDNrhNpK20Ta0" --header "Accept: application/json; indent=4"  --request GET http://localhost:8000/api/blogposts/588660f1-4848-4a32-8eb5-9688fd4409dd/comments/; echo
+    [
+        {
+            "url": "http://127.0.0.1:8000/api/comments/17288f69-bbd7-4758-adfd-a96d0fa5ca01/",
+            "content": "I hate the Internet",
+            "author": "http://127.0.0.1:8000/api/users/2/",
+            "created": "2015-07-10T00:24:47.766000Z",
+            "modified": "2015-07-10T00:24:47.766000Z",
+            "blogpost": "http://127.0.0.1:8000/api/blogposts/588660f1-4848-4a32-8eb5-9688fd4409dd/"
+        }
+    ]
+
+You can create create a new comment POSTing to the nested URL for a specific blogpost: ::
+
+    $ curl --verbose --header "Authorization: Bearer Q8Wbo12h5jwgwR208WDNrhNpK20Ta0" --header "Accept: application/json; indent=4" --header "Content-Type: application/json" --request POST --data '{"content": "No RESTful for the wicked"}' http://localhost:8000/api/blogposts/588660f1-4848-4a32-8eb5-9688fd4409dd/comments/; echo
+    *   Trying 127.0.0.1...
+    * Connected to localhost (127.0.0.1) port 8000 (#0)
+    > POST /api/blogposts/588660f1-4848-4a32-8eb5-9688fd4409dd/comments/ HTTP/1.1
+    > User-Agent: curl/7.40.0
+    > Host: localhost:8000
+    > Authorization: Bearer Q8Wbo12h5jwgwR208WDNrhNpK20Ta0
+    > Accept: application/json; indent=4
+    > Content-Type: application/json
+    > Content-Length: 40
+    >
+    * upload completely sent off: 40 out of 40 bytes
+    < HTTP/1.1 201 CREATED
+    < Server: nginx/1.4.6 (Ubuntu)
+    < Date: Wed, 29 Jul 2015 18:15:30 GMT
+    < Content-Type: application/json; indent=4
+    < Transfer-Encoding: chunked
+    < Connection: keep-alive
+    < Vary: Accept
+    < Allow: GET, POST, HEAD, OPTIONS
+    < Location: http://127.0.0.1:8000/api/comments/81e5afc6-56fc-47d4-9665-db56229d0fba/
+    < X-Frame-Options: SAMEORIGIN
+    <
     {
-        "url": "http://127.0.0.1:8000/api/comments/fcdc71aa-51ed-4433-8090-adc4e7678b9a/",
+        "url": "http://127.0.0.1:8000/api/comments/81e5afc6-56fc-47d4-9665-db56229d0fba/",
         "content": "No RESTful for the wicked",
         "author": "http://127.0.0.1:8000/api/users/1/",
-        "created": "2015-07-13T19:57:36.235369Z",
-        "modified": "2015-07-13T19:57:36.236020Z",
-        "blogpost": "http://127.0.0.1:8000/api/blogposts/41baef11-34a3-4a56-ab2d-5f404e5135c5/"
+        "created": "2015-07-29T18:15:30.294242Z",
+        "modified": "2015-07-29T18:15:30.294635Z",
+        "blogpost": "http://127.0.0.1:8000/api/blogposts/588660f1-4848-4a32-8eb5-9688fd4409dd/"
+    * Connection #0 to host localhost left intact
+    }
+
+You can verify that the comment was actually created by requesting the list of comments again: ::
+
+    $ curl --header "Authorization: Bearer Q8Wbo12h5jwgwR208WDNrhNpK20Ta0" --header "Accept: application/json; indent=4"  --request GET http://localhost:8000/api/blogposts/588660f1-4848-4a32-8eb5-9688fd4409dd/comments/; echo
+    [
+        {
+            "url": "http://127.0.0.1:8000/api/comments/17288f69-bbd7-4758-adfd-a96d0fa5ca01/",
+            "content": "I hate the Internet",
+            "author": "http://127.0.0.1:8000/api/users/2/",
+            "created": "2015-07-10T00:24:47.766000Z",
+            "modified": "2015-07-10T00:24:47.766000Z",
+            "blogpost": "http://127.0.0.1:8000/api/blogposts/588660f1-4848-4a32-8eb5-9688fd4409dd/"
+        },
+        {
+            "url": "http://127.0.0.1:8000/api/comments/81e5afc6-56fc-47d4-9665-db56229d0fba/",
+            "content": "No RESTful for the wicked",
+            "author": "http://127.0.0.1:8000/api/users/1/",
+            "created": "2015-07-29T18:15:30.294242Z",
+            "modified": "2015-07-29T18:15:30.294635Z",
+            "blogpost": "http://127.0.0.1:8000/api/blogposts/588660f1-4848-4a32-8eb5-9688fd4409dd/"
+        }
+    ]
+
+You can also hit the ``/comments`` endpoint directly to list, update or delete a comment: ::
+
+    $ curl --header "Authorization: Bearer Q8Wbo12h5jwgwR208WDNrhNpK20Ta0" --header "Accept: application/json; indent=4"  --request GET http://localhost:8000/api/comments/81e5afc6-56fc-47d4-9665-db56229d0fba/; echo
+    {
+        "url": "http://127.0.0.1:8000/api/comments/81e5afc6-56fc-47d4-9665-db56229d0fba/",
+        "content": "No RESTful for the wicked",
+        "author": "http://127.0.0.1:8000/api/users/1/",
+        "created": "2015-07-29T18:15:30.294242Z",
+        "modified": "2015-07-29T18:15:30.294635Z",
+        "blogpost": "http://127.0.0.1:8000/api/blogposts/588660f1-4848-4a32-8eb5-9688fd4409dd/"
     }
 
 A `Vagrant <https://www.vagrantup.com/>`_ configuration file is included if you want to test the service yourself.
